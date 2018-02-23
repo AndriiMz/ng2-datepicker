@@ -32,6 +32,7 @@ export interface DatepickerOptions {
   locale?: object;
   minDate?: Date;
   maxDate?: Date;
+  isRange?: boolean;
 }
 
 /**
@@ -58,22 +59,11 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
    */
   @Input() headless = false;
 
-  /**
-   * Set datepicker's visibility state
-   */
-  @Input() isOpened = false;
-
-  /**
-   * Datepicker dropdown position
-   */
-  @Input() position = 'bottom-right';
-
-  private positions = ['bottom-left', 'bottom-right', 'top-left', 'top-right'];
-
   innerValue: Date;
   displayValue: string;
   displayFormat: string;
   date: Date;
+  endDate: Date;
   barTitle: string;
   barTitleFormat: string;
   barTitleIfEmpty: string;
@@ -96,6 +86,7 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     isSelectable: boolean;
   }[];
   locale: object;
+  isRange = false;
 
   private onTouchedCallback: () => void = () => { };
   private onChangeCallback: (_: any) => void = () => { };
@@ -128,11 +119,7 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     this.setOptions();
     this.initDayNames();
     this.initYears();
-
-    // Check if 'position' property is correct
-    if (this.positions.indexOf(this.position) === -1) {
-      throw new TypeError(`ng-datepicker: invalid position property value '${this.position}' (expected: ${this.positions.join(', ')})`);
-    }
+    this.initRange();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -170,8 +157,9 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     this.date = this.days[i].date;
     this.value = this.date;
     this.init();
-    this.close();
   }
+
+
 
   setYear(i: number): void {
     this.date = setYear(this.date, this.years[i].year);
@@ -258,16 +246,17 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     }
   }
 
+  initRange(): void {
+    if (this.options.isRange !== undefined) {
+      this.isRange = this.options.isRange;
+    }
+    if (this.isRange) {
+      this.endDate = new Date();
+    }
+  }
+
   toggleView(): void {
     this.view = this.view === 'days' ? 'years' : 'days';
-  }
-
-  toggle(): void {
-    this.isOpened = !this.isOpened;
-  }
-
-  close(): void {
-    this.isOpened = false;
   }
 
   writeValue(val: Date) {
@@ -286,26 +275,5 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
 
   registerOnTouched(fn: any) {
     this.onTouchedCallback = fn;
-  }
-
-  @HostListener('document:click', ['$event']) onBlur(e: MouseEvent) {
-    if (!this.isOpened) {
-      return;
-    }
-
-    const input = this.elementRef.nativeElement.querySelector('.ngx-datepicker-input');
-
-    if (input == null) {
-      return;
-    }
-
-    if (e.target === input || input.contains(<any>e.target)) {
-      return;
-    }
-
-    const container = this.elementRef.nativeElement.querySelector('.ngx-datepicker-calendar-container');
-    if (container && container !== e.target && !container.contains(<any>e.target) && !(<any>e.target).classList.contains('year-unit')) {
-      this.close();
-    }
   }
 }

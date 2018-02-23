@@ -9,10 +9,18 @@ import * as frLocale from 'date-fns/locale/fr';
 })
 export class AppHomeComponent {
   date: Date;
+  range: Array<Date>;
   options: DatepickerOptions = {
     locale: enLocale
   };
+  optionsRange: DatepickerOptions = {
+      locale: enLocale,
+      isRange: true
+  };
   constructor() {
     this.date = new Date();
+    this.range = new Array<Date>(2);
+    this.range.push(new Date());
+    this.range.push(new Date());
   }
 }

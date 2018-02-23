@@ -6,8 +6,14 @@
       </div>
     </div>
     <div class="column is-6 is-offset-3">
+      <h2>Simple datapicker</h2>
       <div class="datepicker-container">
         <ng-datepicker [(ngModel)]="date" [options]="options"></ng-datepicker>
+      </div>
+
+      <h2>Range datapicker</h2>
+      <div class="datepicker-container">
+        <ng-datepicker [(ngModel)]="date" [options]="optionsRange"></ng-datepicker>
       </div>
     </div>
   </div>
