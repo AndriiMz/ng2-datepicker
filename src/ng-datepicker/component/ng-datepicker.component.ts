@@ -1,23 +1,23 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, ElementRef, HostListener, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import {
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-  subMonths,
-  setYear,
-  eachDay,
-  getDate,
-  getMonth,
-  getYear,
-  isToday,
-  isSameDay,
-  isSameMonth,
-  isSameYear,
-  format,
-  getDay,
-  subDays,
-  setDay
+    startOfMonth,
+    endOfMonth,
+    addMonths,
+    subMonths,
+    setYear,
+    eachDay,
+    getDate,
+    getMonth,
+    getYear,
+    isToday,
+    isSameDay,
+    isSameMonth,
+    isSameYear,
+    format,
+    getDay,
+    subDays,
+    setDay, isAfter, isBefore
 } from 'date-fns';
 import { ISlimScrollOptions } from 'ngx-slimscroll';
 
@@ -53,14 +53,13 @@ const isNil = (value: Date | DatepickerOptions) => {
 })
 export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnChanges {
   @Input() options: DatepickerOptions;
-
   /**
    * Disable datepicker's input
    */
   @Input() headless = false;
 
-  innerValue: Date;
-  displayValue: string;
+
+  innerValue: any;
   displayFormat: string;
   date: Date;
   endDate: Date;
@@ -83,21 +82,34 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     inThisMonth: boolean;
     isToday: boolean;
     isSelected: boolean;
+    isStartDate: boolean;
+    isEndDate: boolean;
+    isInRange: boolean;
     isSelectable: boolean;
   }[];
   locale: object;
   isRange = false;
+  isStartDateSelected = false;
+  isEndDateSelected = false;
 
   private onTouchedCallback: () => void = () => { };
   private onChangeCallback: (_: any) => void = () => { };
 
-  get value(): Date {
+  get value(): any {
     return this.innerValue;
   }
 
-  set value(val: Date) {
-    this.innerValue = val;
-    this.onChangeCallback(this.innerValue);
+  set value(val: any) {
+    if (this.isRange) {
+        if (this.innerValue.length == 2) {
+            this.innerValue.pop();
+            this.innerValue.pop();
+        }
+        this.innerValue.push(val);
+    } else {
+        this.innerValue = val;
+        this.onChangeCallback(this.innerValue);
+    }
   }
 
   constructor(private elementRef: ElementRef) {
@@ -154,9 +166,26 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
   }
 
   setDate(i: number): void {
-    this.date = this.days[i].date;
-    this.value = this.date;
-    this.init();
+    if (!this.isRange) {
+        this.date = this.days[i].date;
+        this.value = this.date;
+        this.init();
+    } else {
+        if (this.isStartDateSelected && this.isEndDateSelected) {
+          this.isStartDateSelected = false;
+          this.isEndDateSelected = false;
+        }
+        if (!this.isStartDateSelected) {
+            this.isStartDateSelected = true;
+            this.date = this.days[i].date;
+            this.value = this.date;
+        } else if (!this.isEndDateSelected) {
+            this.isEndDateSelected = true;
+            this.endDate = this.days[i].date;
+            this.value = this.endDate;
+        }
+        this.init();
+    }
   }
 
 
@@ -189,45 +218,101 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
       return false;
     }
 
+    if (this.innerValue instanceof Array) {
+      if (this.innerValue[0] instanceof Date && !(this.innerValue[1] instanceof Date)) {
+        if (timestamp < this.innerValue[0].valueOf()){
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 
   init(): void {
     const start = startOfMonth(this.date);
     const end = endOfMonth(this.date);
+    let isSelectedInput = function(date) {
+        let isSelected = function(date, value) {
+            return isSameDay(date, value) && isSameMonth(date, value) && isSameYear(date, value);
+        };
+        if (this.innerValue instanceof Date) {
+            return isSelected(date, this.innerValue);
+        } else {
+            return isSelected(date, this.innerValue[0]) || isSelected(date, this.innerValue[1]);
+        }
+    };
+    let isStartDate = function(date) {
+        if (this.innerValue instanceof Date) {
+            return false;
+        } else {
+            return isSameDay(date, this.innerValue[0]) && isSameMonth(date, this.innerValue[0]) && isSameYear(date, this.innerValue[0]);
+        }
+    };
+    let isEndDate = function(date) {
+        if (this.innerValue instanceof Date) {
+            return false;
+        } else {
+            return isSameDay(date, this.innerValue[1]) && isSameMonth(date, this.innerValue[1]) && isSameYear(date, this.innerValue[1]);
+        }
+    };
+    let isInRange = function(date) {
+        if (this.innerValue instanceof Date) {
+          return false;
+        } else {
+          if (this.innerValue[0] instanceof Date && this.innerValue[1] instanceof Date) {
+             return isAfter(date, this.innerValue[0]) && isBefore(date, this.innerValue[1]);
+          } else {
+            return false;
+          }
+        }
+    };
+    let isDateEmpty = function() {
+        if (this.innerValue instanceof Array) {
+           return !(this.innerValue[1] instanceof Date);
+        } else {
+           return !(this.innerValue instanceof Date);
+        }
+    };
 
+    let instance = this;
     this.days = eachDay(start, end).map(date => {
-      return {
-        date: date,
-        day: getDate(date),
-        month: getMonth(date),
-        year: getYear(date),
-        inThisMonth: true,
-        isToday: isToday(date),
-        isSelected: isSameDay(date, this.innerValue) && isSameMonth(date, this.innerValue) && isSameYear(date, this.innerValue),
-        isSelectable: this.isDateSelectable(date)
-      };
+        return {
+            date: date,
+            day: getDate(date),
+            month: getMonth(date),
+            year: getYear(date),
+            inThisMonth: true,
+            isToday: isToday(date),
+            isInRange: isInRange.call(instance, date),
+            isSelected: isSelectedInput.call(instance, date),
+            isSelectable: this.isDateSelectable(date),
+            isStartDate: isStartDate.call(instance, date),
+            isEndDate: isEndDate.call(instance, date)
+        };
     });
 
     const tmp = getDay(start) - this.firstCalendarDay;
     const prevDays = tmp < 0 ? 7 - this.firstCalendarDay : tmp;
 
     for (let i = 1; i <= prevDays; i++) {
-      const date = subDays(start, i);
-      this.days.unshift({
-        date: date,
-        day: getDate(date),
-        month: getMonth(date),
-        year: getYear(date),
-        inThisMonth: false,
-        isToday: isToday(date),
-        isSelected: isSameDay(date, this.innerValue) && isSameMonth(date, this.innerValue) && isSameYear(date, this.innerValue),
-        isSelectable: this.isDateSelectable(date)
-      });
+        const date = subDays(start, i);
+        this.days.unshift({
+            date: date,
+            day: getDate(date),
+            month: getMonth(date),
+            year: getYear(date),
+            inThisMonth: false,
+            isToday: isToday(date),
+            isInRange: isInRange.call(instance, date),
+            isSelected: isSelectedInput.call(instance, date),
+            isSelectable: this.isDateSelectable(date),
+            isStartDate: isStartDate.call(instance, date),
+            isEndDate: isEndDate.call(instance, date)
+        });
     }
+    this.barTitle = !isDateEmpty.call(this) ? format(start, this.barTitleFormat, this.locale) : this.barTitleIfEmpty;
 
-    this.displayValue = this.innerValue ? format(this.innerValue, this.displayFormat, this.locale) : '';
-    this.barTitle =  this.innerValue ? format(start, this.barTitleFormat, this.locale) : this.barTitleIfEmpty;
   }
 
   initYears(): void {
@@ -259,14 +344,18 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     this.view = this.view === 'days' ? 'years' : 'days';
   }
 
-  writeValue(val: Date) {
-    if (val) {
-      this.date = val;
-      this.innerValue = val;
-      this.init();
-      this.displayValue = format(this.innerValue, this.displayFormat, this.locale);
-      this.barTitle = format(startOfMonth(val), this.barTitleFormat, this.locale);
-    }
+  // reads from ngModel
+  writeValue(val: any) {
+      if (val) {
+          if (this.isRange) {
+            this.date = val[0];
+          } else {
+            this.date = val;
+          }
+          this.innerValue = val;
+          this.init();
+          this.barTitle = format(startOfMonth(this.date), this.barTitleFormat, this.locale);
+      }
   }
 
   registerOnChange(fn: any) {

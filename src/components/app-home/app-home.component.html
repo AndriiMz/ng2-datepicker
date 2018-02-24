@@ -10,10 +10,13 @@
       <div class="datepicker-container">
         <ng-datepicker [(ngModel)]="date" [options]="options"></ng-datepicker>
       </div>
-
+      <div class="datepicker-container">
+        model value: {{ range[0] }}
+        {{ range[1] }}
+      </div>
       <h2>Range datapicker</h2>
       <div class="datepicker-container">
-        <ng-datepicker [(ngModel)]="date" [options]="optionsRange"></ng-datepicker>
+        <ng-datepicker [(ngModel)]="range" [options]="optionsRange"></ng-datepicker>
       </div>
     </div>
   </div>
