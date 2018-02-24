@@ -1,23 +1,15 @@
-# ng2-datepicker
+# ng2-datepicker-inline
 
 Angular 2+ Simple and minimal datepicker component
 
 [![AbstruseCI](https://ci.bleenco.io/badge/6)](https://ci.bleenco.io/repo/6)
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1796022/30781709-624eddc2-a124-11e7-88b7-537af535c23b.png" width="300">
-</p>
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1796022/30781711-666e5e5a-a124-11e7-9077-59e8eb7d6b03.png" width="300">
-</p>
 
 ## Installation
 
 1. Install package from `npm`.
 
 ```sh
-npm install ng2-datepicker --save
+npm install ng2-datepicker-inline --save
 ```
 
 2. Include NgDatepickerModule into your application.
@@ -25,7 +17,7 @@ npm install ng2-datepicker --save
 ```ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgDatepickerModule } from 'ng2-datepicker';
+import { NgDatepickerModule } from 'ng2-datepicker-inline';
 
 @NgModule({
   imports: [
