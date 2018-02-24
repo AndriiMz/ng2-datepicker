@@ -44,13 +44,13 @@ const isNil = (value: Date | DatepickerOptions) => {
 
 @Component({
   selector: 'ng-datepicker',
-  templateUrl: 'ng-datepicker.component.html',
-  styleUrls: ['ng-datepicker.component.sass'],
+  templateUrl: 'ng-datepicker-inline.component.html',
+  styleUrls: ['ng-datepicker-inline.component.sass'],
   providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => NgDatepickerComponent), multi: true }
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => NgDatepickerInlineComponent), multi: true }
   ]
 })
-export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnChanges {
+export class NgDatepickerInlineComponent implements ControlValueAccessor, OnInit, OnChanges {
   @Input() options: DatepickerOptions;
   /**
    * Disable datepicker's input
@@ -198,7 +198,7 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
 
     if (this.innerValue instanceof Array) {
       if (this.innerValue[0] instanceof Date && !(this.innerValue[1] instanceof Date)) {
-        if (timestamp < this.innerValue[0].valueOf()){
+        if (timestamp < this.innerValue[0].valueOf()) {
           return false;
         }
       }
