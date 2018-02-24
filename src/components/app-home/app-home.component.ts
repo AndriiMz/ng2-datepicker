@@ -13,14 +13,10 @@ export class AppHomeComponent {
   options: DatepickerOptions = {
     locale: enLocale
   };
-  optionsRange: DatepickerOptions = {
-      locale: enLocale,
-      isRange: true
-  };
   constructor() {
     this.date = new Date();
     this.range = new Array<Date>(0);
-    this.range.push(new Date());
+    this.range.push(new Date(2018, 1, 21));
     this.range.push(new Date(2018, 1, 26));
   }
 }

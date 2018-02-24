@@ -32,7 +32,6 @@ export interface DatepickerOptions {
   locale?: object;
   minDate?: Date;
   maxDate?: Date;
-  isRange?: boolean;
 }
 
 /**
@@ -62,7 +61,6 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
   innerValue: any;
   displayFormat: string;
   date: Date;
-  endDate: Date;
   barTitle: string;
   barTitleFormat: string;
   barTitleIfEmpty: string;
@@ -88,9 +86,6 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     isSelectable: boolean;
   }[];
   locale: object;
-  isRange = false;
-  isStartDateSelected = false;
-  isEndDateSelected = false;
 
   private onTouchedCallback: () => void = () => { };
   private onChangeCallback: (_: any) => void = () => { };
@@ -100,12 +95,13 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
   }
 
   set value(val: any) {
-    if (this.isRange) {
+    if (this.innerValue instanceof Array) {
         if (this.innerValue.length == 2) {
             this.innerValue.pop();
             this.innerValue.pop();
         }
         this.innerValue.push(val);
+        this.onChangeCallback(this.innerValue);
     } else {
         this.innerValue = val;
         this.onChangeCallback(this.innerValue);
@@ -131,7 +127,6 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     this.setOptions();
     this.initDayNames();
     this.initYears();
-    this.initRange();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -151,7 +146,7 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     this.barTitleFormat = this.options && this.options.barTitleFormat || 'MMMM YYYY';
     this.dayNamesFormat = this.options && this.options.dayNamesFormat || 'ddd';
     this.barTitleIfEmpty = this.options && this.options.barTitleIfEmpty || 'Click to select a date';
-    this.firstCalendarDay = this.options && this.options.firstCalendarDay || 0;
+    this.firstCalendarDay = this.options && this.options.firstCalendarDay || 1;
     this.locale = this.options && { locale: this.options.locale } || {};
   }
 
@@ -166,26 +161,9 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
   }
 
   setDate(i: number): void {
-    if (!this.isRange) {
-        this.date = this.days[i].date;
-        this.value = this.date;
-        this.init();
-    } else {
-        if (this.isStartDateSelected && this.isEndDateSelected) {
-          this.isStartDateSelected = false;
-          this.isEndDateSelected = false;
-        }
-        if (!this.isStartDateSelected) {
-            this.isStartDateSelected = true;
-            this.date = this.days[i].date;
-            this.value = this.date;
-        } else if (!this.isEndDateSelected) {
-            this.isEndDateSelected = true;
-            this.endDate = this.days[i].date;
-            this.value = this.endDate;
-        }
-        this.init();
-    }
+    this.date = this.days[i].date;
+    this.value = this.date;
+    this.init();
   }
 
 
@@ -331,15 +309,6 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
     }
   }
 
-  initRange(): void {
-    if (this.options.isRange !== undefined) {
-      this.isRange = this.options.isRange;
-    }
-    if (this.isRange) {
-      this.endDate = new Date();
-    }
-  }
-
   toggleView(): void {
     this.view = this.view === 'days' ? 'years' : 'days';
   }
@@ -347,7 +316,7 @@ export class NgDatepickerComponent implements ControlValueAccessor, OnInit, OnCh
   // reads from ngModel
   writeValue(val: any) {
       if (val) {
-          if (this.isRange) {
+          if (val instanceof Array) {
             this.date = val[0];
           } else {
             this.date = val;
