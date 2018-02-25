@@ -317,9 +317,11 @@ export class NgDatepickerInlineComponent implements ControlValueAccessor, OnInit
   writeValue(val: any) {
       if (val) {
           if (val instanceof Array) {
-            this.date = val[0];
+              this.date = val[0];
+          } else if (val instanceof Date) {
+              this.date = val;
           } else {
-            this.date = val;
+              this.date = new Date();
           }
           this.innerValue = val;
           this.init();
